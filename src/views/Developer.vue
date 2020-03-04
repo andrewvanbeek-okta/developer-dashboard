@@ -47,7 +47,8 @@
 
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="blue darken-1" text @click="close">Cancel</v-btn>
+            <v-btn color="blue darken-1" text @click="close">Close</v-btn>
+            <v-btn color="blue darken-1" text @click="rotateSecret(editedItem)">Generate New Client secret</v-btn>
             <v-btn color="blue darken-1" text @click="save">Save</v-btn>
           </v-card-actions>
         </v-card>
@@ -136,15 +137,27 @@ export default {
         //map to make prettier
       })
     },
+    async rotateSecret(item) {
+      console.log(item)
+      this.$http.post("http://localhost:8000/newSecret", {client: item}).then((result) => {
+        component.close()
+        component.initialize()
+      })
 
+    },
     editItem (item) {
       this.editedIndex = this.clients.indexOf(item)
       this.editedItem = Object.assign({}, item)
       this.dialog = true
     },
-    deleteItem (item) {
-      const index = this.clients.indexOf(item)
-      confirm('Are you sure you want to delete this item?') && this.clients.splice(index, 1)
+    async deleteItem (item) {
+      console.log(item)
+      var component = this
+      var user = await this.$auth.getUser()
+      this.token = await this.$auth.getAccessToken()
+      this.$http.delete("http://localhost:8000/oauthClient", { data: { client: item } }).then((result) => {
+        component.initialize()
+      })
     },
     close () {
       this.dialog = false

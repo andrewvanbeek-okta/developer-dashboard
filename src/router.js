@@ -19,8 +19,8 @@ var router = new Router({
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: Home
+      name: 'developer',
+      component: Developer
     },
     {
       path: '/developer',

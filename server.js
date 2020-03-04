@@ -97,6 +97,35 @@ app.post("/developer-app", function(req, res){
   })
 })
 
+app.post("/newSecret", function(req, res){
+  console.log(req.body.client.client_id)
+  var clientId = req.body.client.client_id
+  var options = {
+    'method': 'POST',
+    'url': orgUrl + '/oauth2/v1/clients/' + clientId + '/lifecycle/newSecret',
+    'headers': headers
+  };
+  request(options, function (error, response) {
+    if (error) throw new Error(error);
+    console.log(response.body);
+  });
+})
+
+app.delete("/oauthClient", function(req, res){
+  console.log(req.body.client.client_id)
+  var clientId = req.body.client.client_id
+  var options = {
+    'method': 'DELETE',
+    'url': orgUrl + '/oauth2/v1/clients/' + clientId,
+    'headers':headers
+  };
+  request(options, function (error, response) {
+    if (error) throw new Error(error);
+    console.log(response.body);
+    res.send({"message": "deleted"})
+  });
+})
+
 
 
 app.listen(process.env.PORT || 8000, function () {
