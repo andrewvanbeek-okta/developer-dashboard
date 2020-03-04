@@ -4,21 +4,15 @@
 ```
 npm install
 ```
-
-### Compiles and hot-reloads for development
+### Create a .env file and copy the keys from .env.sample.  Then go to your Okta to get the client Id, Issuer, org url and api token
 ```
-npm run serve
-```
-
-### Compiles and minifies for production
-```
-npm run build
+touch .env
 ```
 
-### Lints and fixes files
+
+### run the project
 ```
-npm run lint
+npm run start
 ```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+
