@@ -28,7 +28,7 @@
 
 <script>
 var logo = "https://www.okta.com/sites/all/themes/Okta/images/logos/developer/Dev_Logo-03_White_Large.png"
-if(!process.env) {
+if(process.env) {
   logo = process.env.VUE_APP_LOGO
 }
 
