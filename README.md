@@ -1,6 +1,6 @@
 # developer-dashboard
 
-![Farmers Market Finder Demo](https://cdn.glitch.com/b3c3d929-d176-4f3c-8e82-bfdcad09277f%2F2020-03-17%2010.21.57.gif)
+![Video of Dev Dash](https://cdn.glitch.com/b3c3d929-d176-4f3c-8e82-bfdcad09277f%2F2020-03-17%2010.21.57.gif)
 
 ## Project setup
 ```
