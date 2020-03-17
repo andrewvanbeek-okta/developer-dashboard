@@ -10,7 +10,8 @@ Vue.use(Auth, {
   issuer: process.env.VUE_APP_OKTA_ISSUER,
   client_id: process.env.VUE_APP_OKTA_CLIENT_ID,
   redirect_uri: "http://localhost:8080/implicit/callback",
-  scope: 'openid profile email'
+  scope: 'openid profile email',
+  pkce: true
 })
 
 var router = new Router({
@@ -20,7 +21,10 @@ var router = new Router({
     {
       path: '/',
       name: 'developer',
-      component: Developer
+      component: Developer,
+      meta: {
+        requiresAuth: true
+      }
     },
     {
       path: '/developer',

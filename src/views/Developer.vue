@@ -14,7 +14,19 @@
       vertical
       ></v-divider>
       <v-spacer></v-spacer>
+      <v-toolbar-title>Welcome <span v-model="user">{{user}}</span></v-toolbar-title>
+      <v-divider
+      class="mx-4"
+      inset
+      vertical
+      ></v-divider>
       <v-btn color="primary" dark class="mb-2" @click="save">New Oauth App</v-btn>
+      <v-divider
+      class="mx-4"
+      inset
+      vertical
+      ></v-divider>
+      <v-btn color="primary" dark class="mb-2" @click="logout">Logout</v-btn>
       <v-dialog v-model="dialog" max-width="800px">
         <v-card>
           <v-card-title>
@@ -25,15 +37,15 @@
             <v-container>
               <v-row>
                 <v-col cols="12" sm="6" md="4">
-                  <v-text-field v-model="editedItem.client_name" label="client client_name"></v-text-field>
+                  <v-text-field v-model="viewedItem.client_name" label="client client_name"></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="6" md="4">
-                  <v-text-field v-model="editedItem.client_id" label="client_id"></v-text-field>
+                  <v-text-field v-model="viewedItem.client_id" label="client_id"></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="6" md="4">
                   <v-text-field
                   label="client_secret"
-                  v-model="editedItem.client_secret"
+                  v-model="viewedItem.client_secret"
                   :append-icon="show1 ? 'mdi-eye' : 'mdi-eye-off'"
                   :type="show1 ? 'text' : 'password'"
                   name="input-10-1"
@@ -48,7 +60,6 @@
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn color="blue darken-1" text @click="close">Close</v-btn>
-            <v-btn color="blue darken-1" text @click="rotateSecret(editedItem)">Generate New Client secret</v-btn>
             <v-btn color="blue darken-1" text @click="save">Save</v-btn>
           </v-card-actions>
         </v-card>
@@ -59,9 +70,9 @@
     <v-icon
     small
     class="mr-2"
-    @click="editItem(item)"
+    @click="viewItem(item)"
     >
-    mdi-pencil
+    mdi-eye
   </v-icon>
   <v-icon
   small
@@ -85,6 +96,7 @@ export default {
   data: () => ({
     show1: false,
     dialog: false,
+    user: "",
     headers: [
       {
         text: 'Oauth Clients',
@@ -97,7 +109,7 @@ export default {
     ],
     clients: [],
     editedIndex: -1,
-    editedItem: {
+    viewedItem: {
       client_name: '',
       client_id: 0,
       client_secret: 0,
@@ -110,7 +122,7 @@ export default {
 
   computed: {
     formTitle () {
-      return this.editedIndex === -1 ? 'New Oauth App' : 'Edit Oauth Client'
+      return this.editedIndex === -1 ? 'New Oauth App' : 'View Oauth Client'
     },
   },
 
@@ -128,8 +140,8 @@ export default {
     async initialize () {
       var user = await this.$auth.getUser()
       var username = user.preferred_username
+      this.user = user.preferred_username
       this.$http.get("http://localhost:8000/developer-apps?user="+ username).then((result) => {
-        console.log(result.data)
         this.clients = result.data.map(function(client) {
           client["client_secret"] = client.client_uri.split("sec=")[1]
           return client
@@ -138,20 +150,18 @@ export default {
       })
     },
     async rotateSecret(item) {
-      console.log(item)
       this.$http.post("http://localhost:8000/newSecret", {client: item}).then((result) => {
         component.close()
         component.initialize()
       })
 
     },
-    editItem (item) {
+    viewItem (item) {
       this.editedIndex = this.clients.indexOf(item)
-      this.editedItem = Object.assign({}, item)
+      this.viewedItem = Object.assign({}, item)
       this.dialog = true
     },
     async deleteItem (item) {
-      console.log(item)
       var component = this
       var user = await this.$auth.getUser()
       this.token = await this.$auth.getAccessToken()
@@ -162,16 +172,21 @@ export default {
     close () {
       this.dialog = false
       setTimeout(() => {
-        this.editedItem = Object.assign({}, this.defaultItem)
+        this.viewedItem = Object.assign({}, this.defaultItem)
         this.editedIndex = -1
       }, 300)
     },
+    async logout () {
+     await this.$auth.logout()
+     await this.$auth.isAuthenticated()
 
+     // Navigate back to home
+     window.location.reload()
+   },
     async save () {
       var component = this
       var user = await this.$auth.getUser()
       this.token = await this.$auth.getAccessToken()
-      console.log(this.$http)
       this.$http.post("http://localhost:8000/developer-app", {user: user}).then((result) => {
         component.close()
         component.initialize()
