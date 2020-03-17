@@ -1,5 +1,7 @@
 # developer-dashboard
 
+![Farmers Market Finder Demo](2020-03-17 10.26.56.gif)
+
 ## Project setup
 ```
 npm install
