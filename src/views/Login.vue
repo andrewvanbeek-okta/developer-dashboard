@@ -45,7 +45,7 @@ export default {
           pkce: true,
           issuer: sampleConfig.oidc.issuer,
           display: 'page',
-          scopes: sampleConfig.oidc.scopes
+          scopes: sampleConfig.oidc.scopes,
         }
       })
 

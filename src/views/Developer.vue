@@ -14,7 +14,7 @@
       vertical
       ></v-divider>
       <v-spacer></v-spacer>
-      <v-toolbar-title>Welcome <span v-model="user">{{user}}</span></v-toolbar-title>
+      <v-toolbar-title>Welcome, <span v-model="user">{{user}}</span></v-toolbar-title>
       <v-divider
       class="mx-4"
       inset
@@ -139,11 +139,15 @@ export default {
   methods: {
     async initialize () {
       var user = await this.$auth.getUser()
+      var token = await this.$auth.getAccessToken();
+      console.log(token);
+      console.log(user);
       var username = user.preferred_username
-      this.user = user.preferred_username
+      this.user = user.name
+
       this.$http.get("http://localhost:8000/developer-apps?user="+ username).then((result) => {
         this.clients = result.data.map(function(client) {
-          client["client_secret"] = client.client_uri.split("sec=")[1]
+          //client["client_secret"] = client.client_uri.split("sec=")[1]
           return client
         })
         //map to make prettier

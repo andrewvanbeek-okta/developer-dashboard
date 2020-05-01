@@ -15,7 +15,7 @@ export default {
       clientId: '0oar5mhdbdVNN9LDr0h7',
       issuer: 'https://pollardcorp.oktapreview.com/oauth2/ausr5uummxs0p44mY0h7',
       redirectUri: 'http://localhost:8080/implicit/callback',
-      scope: 'openid profile email',
+      scopes: ['openid', 'profile', 'email'],
       testing: {
         disableHttpsCheck: true
       }
