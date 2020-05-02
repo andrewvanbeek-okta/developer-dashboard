@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import Home from './views/Home.vue'
+import Login from './views/Login'
 import Developer from './views/Developer.vue'
 import Auth from '@okta/okta-vue'
 
@@ -27,6 +28,10 @@ var router = new Router({
       }
     },
     {
+      path: '/login',
+      component: Login
+    },
+    {
       path: '/developer',
       name: 'developer',
       component: Developer,
@@ -49,6 +54,15 @@ var router = new Router({
   ]
 })
 
-router.beforeEach(Vue.prototype.$auth.authRedirectGuard())
+const onAuthRequired = async (from, to, next) => {
+  if (from.matched.some(record => record.meta.requiresAuth) && !(await Vue.prototype.$auth.isAuthenticated())) {
+    // Navigate to custom login page
+    next({ path: '/login' })
+  } else {
+    next()
+  }
+}
+
+router.beforeEach(onAuthRequired)
 
 export default router

@@ -3,7 +3,10 @@ var app = express();
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 var history = require('connect-history-api-fallback');
 require('dotenv').config()
+const fs = require('fs');
+
 // Serve all the files in '/dist' directory
+
 
 var bodyParser = require('body-parser')
 var cors = require('cors')
@@ -16,38 +19,107 @@ app.use(cors())
 var apiToken = process.env.API_TOKEN
 var orgUrl = process.env.ORG_URL
 
-console.log(apiToken)
-console.log(orgUrl)
+global.O4OToken = ""
+var O4Oheaders = ""
 
-var headers = {
-  'cache-control': 'no-cache',
-  authorization: 'SSWS ' + apiToken,
-  'content-type': 'application/json',
-  accept: 'application/json' }
-  var request = require("request");
+var clientId = process.env.O4O_CLIENT_ID
 
-  const okta = require('@okta/okta-sdk-nodejs');
+var request = require("request");
+const okta = require('@okta/okta-sdk-nodejs');
 
-  const client = new okta.Client({
-    orgUrl: orgUrl + '',
-    token: apiToken
-  });
+var pair = {
+  public: fs.readFileSync('./.public.key', 'utf8'),
+  private: fs.readFileSync('./.private.key','utf8')
+};
+var jwks = require('./.jwk.json');
+
+const O4Oclient = new okta.Client({
+  orgUrl: orgUrl,
+  authorizationMode: 'PrivateKey',
+  clientId: clientId,
+  scopes: ['okta.users.read', 'okta.clients.manage', 'okta.clients.read', 'okta.clients.register', 'okta.apps.manage'],
+  privateKey: jwks,
+  token: 'faketoken',
+});
+
 
   app.get("/developer-apps", function(req, res){
     var request = require('request');
-    var user = req.query.user
-    var options = {
-      'method': 'GET',
-      'url': orgUrl + '/oauth2/v1/clients?q=' + user,
-      'headers': headers
-    };
-    request(options, function (error, response) {
-      if (error) throw new Error(error);
-      console.log(response.body);
-      res.send(response.body)
-    });
-  })
+    console.log(jwks);
+    if (O4OToken == "") {
+      const njwt = require('njwt');
+      const now = Math.floor( new Date().getTime() / 1000 ); // seconds since epoch
+      const plus5Minutes = new Date( ( now + (5*60) ) * 1000); // Date object
+      const claims = {
+        aud: orgUrl + "/oauth2/v1/token",
+        cid: clientId,
+      };
+  
+      const jwt = njwt.create(claims, pair.private, 'RS256')
+        .setIssuedAt(now)
+        .setExpiration(plus5Minutes)
+        .setIssuer(clientId)
+        .setSubject(clientId)
+        .compact();
+      
+        var options = {
+          'method': 'POST',
+          'url': orgUrl + '/oauth2/v1/token',
+          'headers': {
+            'Accept': 'application/json',
+            'content-type': 'application/x-www-form-urlencoded',
+            'cache-control': ' no-cache'
+          },
+          form: {
+            'grant_type': 'client_credentials',
+            'scope': 'okta.users.read okta.clients.manage okta.clients.read okta.clients.register',
+            'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+            'client_assertion': jwt
+          }
+        };
 
+        request(options, function (error, response) { 
+          if (error) throw new Error(error);
+          var O4OResponse = JSON.parse(response.body)
+          O4OToken = O4OResponse.access_token;
+          O4Oheaders = {
+            'cache-control': 'no-cache',
+            authorization: 'Bearer ' + O4OToken,
+            'content-type': 'application/json',
+            accept: 'application/json' 
+          }
+
+          //////
+
+          var user = req.query.user
+          
+          var options = {
+            'method': 'GET',
+            'url': orgUrl + '/oauth2/v1/clients?q=' + user,
+            'headers': O4Oheaders
+          };
+          
+          request(options, function (error, response) {
+            if (error) console.log(error);
+            res.send(response.body)
+          });
+        });
+    } else {
+      console.log("O4OHeaders have been set");
+      var user = req.query.user
+          
+      var options = {
+        'method': 'GET',
+        'url': orgUrl + '/oauth2/v1/clients?q=' + user,
+        'headers': O4Oheaders
+      };
+      
+      request(options, function (error, response) {
+        if (error) console.log(error);
+        res.send(response.body)
+      });
+    }
+  })
 
 
   app.post("/developer-app", function(req, res){
@@ -55,7 +127,7 @@ var headers = {
     var clientId = uuidv4()
     var clientSecret = uuidv4()
     var client_data = {"client_id" : clientId, "client_secret": clientSecret}
-    console.log(client_data)
+   // console.log(client_data)
     var application = {
       "name": "oidc_client",
       "label": req.body.user.preferred_username + clientId,
@@ -84,13 +156,9 @@ var headers = {
       }
     }
 
-
-
-    console.log(application)
-
-
-    client.createApplication(application)
+    O4Oclient.createApplication(application)
     .then(application => {
+      console.log("created new app")
       res.send(application)
     }).catch(err => {
       console.log(err)
@@ -103,7 +171,7 @@ var headers = {
     var options = {
       'method': 'POST',
       'url': orgUrl + '/oauth2/v1/clients/' + clientId + '/lifecycle/newSecret',
-      'headers': headers
+      'headers': O4Oheaders
     };
     request(options, function (error, response) {
       if (error) throw new Error(error);
@@ -136,7 +204,7 @@ var headers = {
     var options = {
       'method': 'DELETE',
       'url': orgUrl + '/oauth2/v1/clients/' + clientId,
-      'headers':headers
+      'headers':O4Oheaders
     };
     request(options, function (error, response) {
       if (error) throw new Error(error);
