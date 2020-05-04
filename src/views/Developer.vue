@@ -139,13 +139,17 @@ export default {
   methods: {
     async initialize () {
       var user = await this.$auth.getUser()
-      var token = await this.$auth.getAccessToken();
-      console.log(token);
-      console.log(user);
+      var accessToken = await this.$auth.getAccessToken();
+      console.log(accessToken);
+      const accessTokenobj = {
+        accessToken
+      }
       var username = user.preferred_username
-      this.user = user.name
+      const baseURI = "http://localhost:8000/developer-apps?user="+ username;
 
-      this.$http.get("http://localhost:8000/developer-apps?user="+ username).then((result) => {
+      this.$http.get(baseURI, {
+          "adhoidhjwioqdhq" : "abc"
+      }).then((result) => {
         this.clients = result.data.map(function(client) {
           //client["client_secret"] = client.client_uri.split("sec=")[1]
           return client

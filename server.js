@@ -1,12 +1,15 @@
 var express = require('express');
 var app = express();
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
-var history = require('connect-history-api-fallback');
 require('dotenv').config()
 const fs = require('fs');
 
-// Serve all the files in '/dist' directory
 
+// Serve all the files in '/dist' directory
+const OktaJwtVerifier = require('@okta/jwt-verifier');
+const oktaJwtVerifier = new OktaJwtVerifier({
+  issuer: process.env.VUE_APP_OKTA_ISSUER // required
+});
 
 var bodyParser = require('body-parser')
 var cors = require('cors')
@@ -16,7 +19,6 @@ process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 app.use(bodyParser.json());
 app.use(cors())
 
-var apiToken = process.env.API_TOKEN
 var orgUrl = process.env.ORG_URL
 
 global.O4OToken = ""
@@ -44,81 +46,89 @@ const O4Oclient = new okta.Client({
 
 
   app.get("/developer-apps", function(req, res){
-    var request = require('request');
-    console.log(jwks);
-    if (O4OToken == "") {
-      const njwt = require('njwt');
-      const now = Math.floor( new Date().getTime() / 1000 ); // seconds since epoch
-      const plus5Minutes = new Date( ( now + (5*60) ) * 1000); // Date object
-      const claims = {
-        aud: orgUrl + "/oauth2/v1/token",
-        cid: clientId,
-      };
-  
-      const jwt = njwt.create(claims, pair.private, 'RS256')
-        .setIssuedAt(now)
-        .setExpiration(plus5Minutes)
-        .setIssuer(clientId)
-        .setSubject(clientId)
-        .compact();
-      
-        var options = {
-          'method': 'POST',
-          'url': orgUrl + '/oauth2/v1/token',
-          'headers': {
-            'Accept': 'application/json',
-            'content-type': 'application/x-www-form-urlencoded',
-            'cache-control': ' no-cache'
-          },
-          form: {
-            'grant_type': 'client_credentials',
-            'scope': 'okta.users.read okta.clients.manage okta.clients.read okta.clients.register',
-            'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-            'client_assertion': jwt
-          }
+    console.log(req);
+    oktaJwtVerifier.verifyAccessToken(req.body.accessToken, "api://payments")
+    .then(jwt => {
+      var request = require('request');
+      console.log(jwks);
+      if (O4OToken == "") {
+        const njwt = require('njwt');
+        const now = Math.floor( new Date().getTime() / 1000 ); // seconds since epoch
+        const plus5Minutes = new Date( ( now + (5*60) ) * 1000); // Date object
+        const claims = {
+          aud: orgUrl + "/oauth2/v1/token",
+          cid: clientId,
         };
-
-        request(options, function (error, response) { 
-          if (error) throw new Error(error);
-          var O4OResponse = JSON.parse(response.body)
-          O4OToken = O4OResponse.access_token;
-          O4Oheaders = {
-            'cache-control': 'no-cache',
-            authorization: 'Bearer ' + O4OToken,
-            'content-type': 'application/json',
-            accept: 'application/json' 
-          }
-
-          //////
-
-          var user = req.query.user
-          
+    
+        const jwt = njwt.create(claims, pair.private, 'RS256')
+          .setIssuedAt(now)
+          .setExpiration(plus5Minutes)
+          .setIssuer(clientId)
+          .setSubject(clientId)
+          .compact();
+        
           var options = {
-            'method': 'GET',
-            'url': orgUrl + '/oauth2/v1/clients?q=' + user,
-            'headers': O4Oheaders
+            'method': 'POST',
+            'url': orgUrl + '/oauth2/v1/token',
+            'headers': {
+              'Accept': 'application/json',
+              'content-type': 'application/x-www-form-urlencoded',
+              'cache-control': ' no-cache'
+            },
+            form: {
+              'grant_type': 'client_credentials',
+              'scope': 'okta.users.read okta.clients.manage okta.clients.read okta.clients.register',
+              'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+              'client_assertion': jwt
+            }
           };
-          
-          request(options, function (error, response) {
-            if (error) console.log(error);
-            res.send(response.body)
+
+          request(options, function (error, response) { 
+            if (error) throw new Error(error);
+            var O4OResponse = JSON.parse(response.body)
+            O4OToken = O4OResponse.access_token;
+            O4Oheaders = {
+              'cache-control': 'no-cache',
+              authorization: 'Bearer ' + O4OToken,
+              'content-type': 'application/json',
+              accept: 'application/json' 
+            }
+
+            //////
+
+            var user = req.query.user
+            
+            var options = {
+              'method': 'GET',
+              'url': orgUrl + '/oauth2/v1/clients?q=' + user,
+              'headers': O4Oheaders
+            };
+            
+            request(options, function (error, response) {
+              if (error) console.log(error);
+              res.send(response.body)
+            });
           });
+      } else {
+        console.log("O4OHeaders have been set");
+        var user = req.query.user
+            
+        var options = {
+          'method': 'GET',
+          'url': orgUrl + '/oauth2/v1/clients?q=' + user,
+          'headers': O4Oheaders
+        };
+        
+        request(options, function (error, response) {
+          if (error) console.log(error);
+          res.send(response.body)
         });
-    } else {
-      console.log("O4OHeaders have been set");
-      var user = req.query.user
-          
-      var options = {
-        'method': 'GET',
-        'url': orgUrl + '/oauth2/v1/clients?q=' + user,
-        'headers': O4Oheaders
-      };
-      
-      request(options, function (error, response) {
-        if (error) console.log(error);
-        res.send(response.body)
-      });
-    }
+      }
+    })
+    .catch(err => {
+      // a validation failed, inspect the error
+      console.log(err);
+    });
   })
 
 
