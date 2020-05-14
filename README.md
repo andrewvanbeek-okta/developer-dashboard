@@ -8,9 +8,10 @@ This application allows for users to register, sign in, and create OAuth service
 ```
 npm install
 ```
-### Create a .env file and copy the keys from .env.sample.  Then go to your Okta to get the client Id, Issuer, org url and api token
+### Create a .env file and copy the keys from .env.sample. Do the same for /src/.config.js. Then go to your Okta tenant to get the client Id, Issuer, org url and api token
 ```
 touch .env
+touch ./src/.config.js
 ```
  
  If you don't already have an application configured in Okta,head to Applications > Create new App and specify "SPA" as the type. Remember to assign yourself the app as well.

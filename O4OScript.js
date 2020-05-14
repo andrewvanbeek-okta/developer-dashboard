@@ -94,7 +94,7 @@ var keyPair = crypto.generateKeyPair('rsa', {
       },
       body: JSON.stringify({
         "scopeId": "okta.clients.manage",
-        "issuer": "https://pollardcorp.oktapreview.com"
+        "issuer": process.env.ORG_URL
       })
     };
     
@@ -117,7 +117,7 @@ var keyPair = crypto.generateKeyPair('rsa', {
         },
         body: JSON.stringify({
           "scopeId": "okta.apps.manage",
-          "issuer": "https://pollardcorp.oktapreview.com"
+          "issuer": process.env.ORG_URL
         })
       };
       client.http.http(url, request2)
