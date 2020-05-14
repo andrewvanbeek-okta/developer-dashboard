@@ -11,6 +11,7 @@ const oktaJwtVerifier = new OktaJwtVerifier({
   issuer: process.env.VUE_APP_OKTA_ISSUER // required
 });
 
+
 var bodyParser = require('body-parser')
 var cors = require('cors')
 const uuidv4 = require('uuid/v4');
@@ -30,8 +31,8 @@ var request = require("request");
 const okta = require('@okta/okta-sdk-nodejs');
 
 var pair = {
-  public: fs.readFileSync('./.public.key', 'utf8'),
-  private: fs.readFileSync('./.private.key','utf8')
+  public: fs.readFileSync('./.public.pem', 'utf8'),
+  private: fs.readFileSync('./.private.pem','utf8')
 };
 var jwks = require('./.jwk.json');
 
@@ -39,18 +40,16 @@ const O4Oclient = new okta.Client({
   orgUrl: orgUrl,
   authorizationMode: 'PrivateKey',
   clientId: clientId,
-  scopes: ['okta.users.read', 'okta.clients.manage', 'okta.clients.read', 'okta.clients.register', 'okta.apps.manage'],
+  scopes: ['okta.clients.manage', 'okta.apps.manage'],
   privateKey: jwks,
   token: 'faketoken',
 });
 
 
   app.get("/developer-apps", function(req, res){
-    console.log(req);
-    oktaJwtVerifier.verifyAccessToken(req.body.accessToken, "api://payments")
+    oktaJwtVerifier.verifyAccessToken(req.headers.authorization, "api://payments")
     .then(jwt => {
       var request = require('request');
-      console.log(jwks);
       if (O4OToken == "") {
         const njwt = require('njwt');
         const now = Math.floor( new Date().getTime() / 1000 ); // seconds since epoch
@@ -59,6 +58,7 @@ const O4Oclient = new okta.Client({
           aud: orgUrl + "/oauth2/v1/token",
           cid: clientId,
         };
+
     
         const jwt = njwt.create(claims, pair.private, 'RS256')
           .setIssuedAt(now)
@@ -66,7 +66,12 @@ const O4Oclient = new okta.Client({
           .setIssuer(clientId)
           .setSubject(clientId)
           .compact();
-        
+          
+          console.log(clientId);
+          console.log(jwt);
+
+
+          //console.log(jwt);
           var options = {
             'method': 'POST',
             'url': orgUrl + '/oauth2/v1/token',
@@ -77,11 +82,12 @@ const O4Oclient = new okta.Client({
             },
             form: {
               'grant_type': 'client_credentials',
-              'scope': 'okta.users.read okta.clients.manage okta.clients.read okta.clients.register',
+              'scope': 'okta.clients.manage',
               'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
               'client_assertion': jwt
             }
           };
+
 
           request(options, function (error, response) { 
             if (error) throw new Error(error);
@@ -97,6 +103,7 @@ const O4Oclient = new okta.Client({
             //////
 
             var user = req.query.user
+            console.log(user);
             
             var options = {
               'method': 'GET',
@@ -112,7 +119,7 @@ const O4Oclient = new okta.Client({
       } else {
         console.log("O4OHeaders have been set");
         var user = req.query.user
-            
+        
         var options = {
           'method': 'GET',
           'url': orgUrl + '/oauth2/v1/clients?q=' + user,
@@ -124,8 +131,7 @@ const O4Oclient = new okta.Client({
           res.send(response.body)
         });
       }
-    })
-    .catch(err => {
+    }).catch(err => {
       // a validation failed, inspect the error
       console.log(err);
     });
@@ -133,97 +139,119 @@ const O4Oclient = new okta.Client({
 
 
   app.post("/developer-app", function(req, res){
-    console.log(req.body.user)
-    var clientId = uuidv4()
-    var clientSecret = uuidv4()
-    var client_data = {"client_id" : clientId, "client_secret": clientSecret}
-   // console.log(client_data)
-    var application = {
-      "name": "oidc_client",
-      "label": req.body.user.preferred_username + clientId,
-      "signOnMode": "OPENID_CONNECT",
-      "credentials": {
-        "oauthClient": {
-          "client_id": clientId,
-          "client_secret": clientSecret,
-          "token_endpoint_auth_method": "client_secret_post"
-        }
-      },
-      "settings": {
-        "oauthClient": {
-          "client_uri": "http://clientsecplaceholder.com?sec=" + clientSecret, //typically you would save the client secret in your own backend since Okta does expose the client secret but for demo purposes we manipulate it here
-          "logo_uri": null,
-          "response_types": [
-            "token"
-          ],
-          "grant_types": [
-            "client_credentials"
-          ],
-          "application_type": "service",
-          "consent_method": "REQUIRED",
-          "issuer_mode": "ORG_URL"
-        }
-      }
-    }
+    // console.log(req.headers);
+    // console.log(req.body.headers);
+    // console.log(req.body.headers.Authorization);
 
-    O4Oclient.createApplication(application)
-    .then(application => {
-      console.log("created new app")
-      res.send(application)
+    //not sure why it's coming in from req.body and not headers...
+    oktaJwtVerifier.verifyAccessToken(req.body.headers.Authorization, "api://payments")
+    .then(jwt => {
+        console.log(req.body.user)
+        var clientId = uuidv4()
+        var clientSecret = uuidv4()
+        var client_data = {"client_id" : clientId, "client_secret": clientSecret}
+      // console.log(client_data)
+        var application = {
+          "name": "oidc_client",
+          "label": req.body.user.preferred_username + clientId,
+          "signOnMode": "OPENID_CONNECT",
+          "credentials": {
+            "oauthClient": {
+              "client_id": clientId,
+              "client_secret": clientSecret,
+              "token_endpoint_auth_method": "client_secret_post"
+            }
+          },
+          "settings": {
+            "oauthClient": {
+              "client_uri": "http://clientsecplaceholder.com?sec=" + clientSecret, //typically you would save the client secret in your own backend since Okta does expose the client secret but for demo purposes we manipulate it here
+              "logo_uri": null,
+              "response_types": [
+                "token"
+              ],
+              "grant_types": [
+                "client_credentials"
+              ],
+              "application_type": "service",
+              "consent_method": "REQUIRED",
+              "issuer_mode": "ORG_URL"
+            }
+          }
+        }
+
+        O4Oclient.createApplication(application)
+        .then(application => {
+          console.log("created new app")
+          res.send(application)
+        }).catch(err => {
+          console.log(err)
+        })
     }).catch(err => {
-      console.log(err)
-    })
+      // a validation failed, inspect the error
+      console.log(err);
+    });
   })
 
   app.post("/newSecret", function(req, res){
-    console.log(req.body.client.client_id)
-    var clientId = req.body.client.client_id
-    var options = {
-      'method': 'POST',
-      'url': orgUrl + '/oauth2/v1/clients/' + clientId + '/lifecycle/newSecret',
-      'headers': O4Oheaders
-    };
-    request(options, function (error, response) {
-      if (error) throw new Error(error);
-      console.log(response.body);
-      console.log("#####")
-      var clientResponse = JSON.parse(response.body)
-      console.log(clientResponse)
-      console.log("#####")
-      var client = {}
-      client["client_name"] = clientResponse.client_name
-      clientResponse["client_uri"] = "http://clientsecplaceholder.com?sec=" + clientResponse.client_secret
-      client["response_types"] = clientResponse["response_types"]
-      client["grant_types"] = clientResponse["grant_types"]
-      options["method"] = 'PUT'
-      options['url'] = orgUrl + '/oauth2/v1/clients/' + clientResponse.client_id
-      options.body = JSON.stringify(client)
+    oktaJwtVerifier.verifyAccessToken(req.headers.authorization, "api://payments")
+    .then(jwt => {
+        console.log(req.body.client.client_id)
+        var clientId = req.body.client.client_id
+        var options = {
+          'method': 'POST',
+          'url': orgUrl + '/oauth2/v1/clients/' + clientId + '/lifecycle/newSecret',
+          'headers': O4Oheaders
+        };
+        request(options, function (error, response) {
+          if (error) throw new Error(error);
+          console.log(response.body);
+          console.log("#####")
+          var clientResponse = JSON.parse(response.body)
+          console.log(clientResponse)
+          console.log("#####")
+          var client = {}
+          client["client_name"] = clientResponse.client_name
+          clientResponse["client_uri"] = "http://clientsecplaceholder.com?sec=" + clientResponse.client_secret
+          client["response_types"] = clientResponse["response_types"]
+          client["grant_types"] = clientResponse["grant_types"]
+          options["method"] = 'PUT'
+          options['url'] = orgUrl + '/oauth2/v1/clients/' + clientResponse.client_id
+          options.body = JSON.stringify(client)
 
-      console.log(options)
-      request(options, function (updateerror, updateresponse) {
-        console.log(updateerror)
-        console.log(updateresponse.body)
-        res.send({"messsage": "update"})
+          console.log(options)
+          request(options, function (updateerror, updateresponse) {
+            console.log(updateerror)
+            console.log(updateresponse.body)
+            res.send({"messsage": "update"})
+          });
+        });
+      }).catch(err => {
+        // a validation failed, inspect the error
+        console.log(err);
       });
-    });
   })
 
   app.delete("/oauthClient", function(req, res){
-    console.log(req.body.client.client_id)
-    var clientId = req.body.client.client_id
-    var options = {
-      'method': 'DELETE',
-      'url': orgUrl + '/oauth2/v1/clients/' + clientId,
-      'headers':O4Oheaders
-    };
-    request(options, function (error, response) {
-      if (error) throw new Error(error);
-      console.log(response.body);
-      res.send({"message": "deleted"})
+    console.log(req.headers);
+    oktaJwtVerifier.verifyAccessToken(req.headers.authorization, "api://payments")
+    .then(jwt => {
+      console.log(req.body.client.client_id)
+      var clientId = req.body.client.client_id
+      var options = {
+        'method': 'DELETE',
+        'url': orgUrl + '/oauth2/v1/clients/' + clientId,
+        'headers':O4Oheaders
+      };
+      request(options, function (error, response) {
+        if (error) throw new Error(error);
+        console.log(response.body);
+        res.send({"message": "deleted"})
+      });
+    }).catch(err => {
+      // a validation failed, inspect the error
+      console.log(err);
     });
   })
-
-
 
   app.listen(process.env.PORT || 8000, function () {
     console.log('Example app listening on port 8000!');
