@@ -139,22 +139,35 @@ export default {
   methods: {
     async initialize () {
       var user = await this.$auth.getUser()
-      var token = await this.$auth.getAccessToken();
-      console.log(token);
-      console.log(user);
-      var username = user.preferred_username
-      this.user = user.name
+      var accessToken = await this.$auth.getAccessToken();
+      const accessTokenobj = {
+        accessToken
+      }
+      this.user = user.preferred_username
 
-      this.$http.get("http://localhost:8000/developer-apps?user="+ username).then((result) => {
+
+      const baseURI = "http://localhost:8000/developer-apps?user="+ user.preferred_username;
+      this.$http.get(baseURI, {
+        headers: {
+          'Authorization': `${accessToken}`
+        }
+      }).then((result) => {
         this.clients = result.data.map(function(client) {
-          //client["client_secret"] = client.client_uri.split("sec=")[1]
+          client["client_secret"] = client.client_uri.split("sec=")[1]
           return client
         })
         //map to make prettier
       })
     },
     async rotateSecret(item) {
-      this.$http.post("http://localhost:8000/newSecret", {client: item}).then((result) => {
+      var accessToken = await this.$auth.getAccessToken();
+
+      this.$http.post("http://localhost:8000/newSecret", {
+        headers: {
+          'Authorization': `${accessToken}`
+        },
+        client: item
+      }).then((result) => {
         component.close()
         component.initialize()
       })
@@ -168,8 +181,15 @@ export default {
     async deleteItem (item) {
       var component = this
       var user = await this.$auth.getUser()
-      this.token = await this.$auth.getAccessToken()
-      this.$http.delete("http://localhost:8000/oauthClient", { data: { client: item } }).then((result) => {
+      var accessToken = await this.$auth.getAccessToken();
+      this.$http.delete("http://localhost:8000/oauthClient", {
+        headers: {
+          'Authorization': `${accessToken}`
+        },
+        data: { 
+          client: item 
+        } 
+      }).then((result) => {
         component.initialize()
       })
     },
@@ -190,8 +210,13 @@ export default {
     async save () {
       var component = this
       var user = await this.$auth.getUser()
-      this.token = await this.$auth.getAccessToken()
-      this.$http.post("http://localhost:8000/developer-app", {user: user}).then((result) => {
+      var accessToken = await this.$auth.getAccessToken()
+      this.$http.post("http://localhost:8000/developer-app", {
+        headers: {
+            'Authorization': `${accessToken}`
+        },
+        user: user
+      }).then((result) => {
         component.close()
         component.initialize()
       })
