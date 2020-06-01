@@ -7,13 +7,13 @@ export default {
       teal: "#00d6b4",
       primaryGradient: ['rgba(76, 211, 150, 0.1)', 'rgba(53, 183, 125, 0)', 'rgba(119,52,169,0)'],
     },
-    baseUrl: "https://pollardcorp.oktapreview.com/",
+    baseUrl: "https://avb.oktapreview.com/",
     // social: {
     //   fb: "0oa12iotmlkXfacxG357"
     // },
     oidc: {
-      clientId: '0oar5mhdbdVNN9LDr0h7',
-      issuer: 'https://pollardcorp.oktapreview.com/oauth2/ausr5uummxs0p44mY0h7',
+      clientId: '0oaq0i2rhg08X7rPz0h7',
+      issuer: 'https://avb.oktapreview.com/oauth2/default',
       redirectUri: 'http://localhost:8080/implicit/callback',
       scopes: ['openid', 'profile', 'email'],
       testing: {
