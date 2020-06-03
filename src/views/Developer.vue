@@ -20,8 +20,14 @@
       inset
       vertical
       ></v-divider>
-      <v-btn color="primary" dark class="mb-2" @click="save">New Oauth App</v-btn>
+      <v-btn color="primary" dark class="mb-2" @click="save">New Service Oauth App</v-btn>
       <v-divider
+      class="mx-4"
+      inset
+      vertical
+      ></v-divider>
+       <v-btn color="primary" dark class="mb-2" @click="createUserGrant">New User Grant Oauth App</v-btn>
+         <v-divider
       class="mx-4"
       inset
       vertical
@@ -35,7 +41,21 @@
 
           <v-card-text>
             <v-container>
-              <v-row>
+              <v-row v-if="userField">
+                <v-col cols="12" sm="6" md="4">
+                  <v-text-field v-model="new_client_name" label="client client_name"></v-text-field>
+                </v-col>
+                 <v-col cols="12" sm="6" md="4">
+                  <v-text-field v-model="logo_url" label="url for logo"></v-text-field>
+                </v-col>
+                 <v-col cols="12" sm="6" md="4">
+                  <v-text-field v-model="terms_url" label="url for terms"></v-text-field>
+                </v-col>
+                <v-col cols="12" sm="6" md="4">
+                  <v-text-field v-model="policy_url" label="url for policy"></v-text-field>
+                </v-col>
+              </v-row>
+              <v-row v-else>
                 <v-col cols="12" sm="6" md="4">
                   <v-text-field v-model="viewedItem.client_name" label="client client_name"></v-text-field>
                 </v-col>
@@ -96,6 +116,10 @@ export default {
   data: () => ({
     show1: false,
     dialog: false,
+    new_client_name: "",
+    policy_url: "",
+    terms_url: "",
+    userField: false,
     user: "",
     headers: [
       {
@@ -178,6 +202,12 @@ export default {
       this.viewedItem = Object.assign({}, item)
       this.dialog = true
     },
+    createUserGrant (item) {
+      this.editedIndex = this.clients.indexOf(item)
+      this.viewedItem = Object.assign({}, item)
+      this.userField = true
+      this.dialog = true
+    },
     async deleteItem (item) {
       var component = this
       var user = await this.$auth.getUser()
@@ -195,6 +225,7 @@ export default {
     },
     close () {
       this.dialog = false
+      this.userField = false
       setTimeout(() => {
         this.viewedItem = Object.assign({}, this.defaultItem)
         this.editedIndex = -1
@@ -209,18 +240,42 @@ export default {
    },
     async save () {
       var component = this
+      if(component.userField && component.new_client_name) {
+        component.savePkce()
+      } else {
+        var user = await this.$auth.getUser()
+        var accessToken = await this.$auth.getAccessToken()
+        this.$http.post("http://localhost:8000/developer-app", {
+          headers: {
+              'Authorization': `${accessToken}`
+          },
+          user: user
+        }).then((result) => {
+          component.close()
+          component.initialize()
+        })
+      }
+    },
+      async savePkce() {
+      var component = this
+      var name = component.new_client_name
       var user = await this.$auth.getUser()
+      var tos = component.terms_url
+      var policy = component.policy_url
       var accessToken = await this.$auth.getAccessToken()
-      this.$http.post("http://localhost:8000/developer-app", {
+      this.$http.post("http://localhost:8000/developer-pkce-app", {
         headers: {
             'Authorization': `${accessToken}`
         },
-        user: user
+        user: user,
+        name: name,
+        tos: tos,
+        policy: policy
       }).then((result) => {
+        component.userField = false
         component.close()
         component.initialize()
       })
-
     },
   },
 }

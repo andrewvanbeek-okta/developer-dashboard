@@ -3,7 +3,7 @@ var app = express();
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 require('dotenv').config()
 const fs = require('fs');
-
+const logo = process.env.VUE_APP_LOGO
 
 // Serve all the files in '/dist' directory
 const OktaJwtVerifier = require('@okta/jwt-verifier');
@@ -178,6 +178,70 @@ const O4Oclient = new okta.Client({
             }
           }
         }
+
+        O4Oclient.createApplication(application)
+        .then(application => {
+          console.log("created new app")
+          res.send(application)
+        }).catch(err => {
+          console.log(err)
+        })
+    }).catch(err => {
+      // a validation failed, inspect the error
+      console.log(err);
+    });
+  })
+
+  app.post("/developer-pkce-app", function(req, res){
+    // console.log(req.headers);
+    // console.log(req.body.headers);
+    // console.log(req.body.headers.Authorization);
+
+    //not sure why it's coming in from req.body and not headers...
+    oktaJwtVerifier.verifyAccessToken(req.body.headers.Authorization, "api://payments")
+    .then(jwt => {
+        console.log(req.body.user)
+        var clientId = uuidv4()
+        var clientSecret = uuidv4()
+        var client_data = {"client_id" : clientId, "client_secret": clientSecret}
+      // console.log(client_data)
+        var application = {
+          "name": "oidc_client",
+          "label": req.body.user.preferred_username + clientId + "?name=" + req.body.name,
+          "signOnMode": "OPENID_CONNECT",
+          "profile": {"name": "cool startup app"},
+          "credentials": {
+            "oauthClient": {
+              "autoKeyRotation": true,
+              "token_endpoint_auth_method": "none"
+            }
+          },
+          "settings": {
+          "implicitAssignment": true,
+            "oauthClient": {
+              "client_uri": "http://localhost:8080",
+              "logo_uri": logo || "http://developer.okta.com/assets/images/logo-new.png",
+              "redirect_uris": [
+                "https://example.com/oauth2/callback",
+                "http://localhost:8080/callback",
+                "myapp://callback"
+              ],
+              "post_logout_redirect_uris": [
+                "https://example.com/oauth2/postLogoutRedirectUri"
+              ],
+              "response_types": [
+                "code"
+              ],
+              "grant_types": [
+                "authorization_code"
+              ],
+              "application_type": "native",
+              "tos_uri": req.body.tos || "https://example.com/client/tos",
+             "policy_uri": req.body.policy || "https://example.com/client/policy",
+             "consent_method": "REQUIRED",
+          }
+        }
+      }
 
         O4Oclient.createApplication(application)
         .then(application => {
