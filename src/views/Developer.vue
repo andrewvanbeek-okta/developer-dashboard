@@ -82,6 +82,14 @@
             <v-btn color="blue darken-1" text @click="close">Close</v-btn>
             <v-btn color="blue darken-1" text @click="save">Save</v-btn>
           </v-card-actions>
+          <v-card v-if="!viewedItem.client_secret">
+            <br>
+            <div class="d-block pa-2 black white--text">
+              <h3>Run command below</h3>
+              npm i @andrew.vanbeekokta/okta-node-cli-example && export OKTA_ORG_URL={{okta_issuer}} OKTA_CLIENT_ID={{viewedItem.client_id}} OKTA_REDIRECT_PORT=4000 OKTA_SCOPES=openid profile email && pkce-login
+            </div>
+            <br>
+          </v-card>
         </v-card>
       </v-dialog>
     </v-toolbar>
@@ -119,6 +127,7 @@ export default {
     new_client_name: "",
     policy_url: "",
     terms_url: "",
+    okta_issuer: "",
     userField: false,
     user: "",
     headers: [
@@ -155,9 +164,12 @@ export default {
       val || this.close()
     },
   },
+  
 
   created () {
     this.initialize()
+    console.log(process.env.VUE_APP_OKTA_ISSUER)
+    this.okta_issuer = process.env.VUE_APP_OKTA_ISSUER
   },
 
   methods: {

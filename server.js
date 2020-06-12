@@ -219,11 +219,11 @@ const O4Oclient = new okta.Client({
           "settings": {
           "implicitAssignment": true,
             "oauthClient": {
-              "client_uri": "http://localhost:8080",
+              "client_uri": "http://localhost:4000",
               "logo_uri": logo || "http://developer.okta.com/assets/images/logo-new.png",
               "redirect_uris": [
                 "https://example.com/oauth2/callback",
-                "http://localhost:8080/callback",
+                "http://localhost:4000/callback",
                 "myapp://callback"
               ],
               "post_logout_redirect_uris": [
