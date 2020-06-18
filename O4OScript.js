@@ -129,6 +129,26 @@ var keyPair = crypto.generateKeyPair('rsa', {
       .catch(err => {
         console.error(err);
       });
+
+      const request3 = {
+        method: 'post',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          "scopeId": "okta.authorizationServers.read",
+          "issuer": process.env.ORG_URL
+        })
+      };
+      client.http.http(url, request3)
+      .then(res => res.json())
+      .then(json => {
+        console.log("okta.authorizationServers.read");
+      })
+      .catch(err => {
+        console.error(err);
+      });
       
     // request(options, function (err, res) { 
     //   if (error) throw new Error(error);

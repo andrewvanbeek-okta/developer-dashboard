@@ -89,6 +89,18 @@
             </div>
             <br>
           </v-card>
+           <v-card v-else>
+            <br>
+            <div class="d-block pa-2 black white--text">
+              <h3>Run command below</h3>
+              curl --location --request POST '{{okta_issuer}}/v1/token' \<br>
+--header 'Authorization: Basic {{baseEncode}}' \<br>
+--header 'Content-Type: application/x-www-form-urlencoded' \<br>
+--data-urlencode 'grant_type=client_credentials' \<br>
+--data-urlencode 'scope=openid email profile' 
+            </div>
+            <br>
+          </v-card>
         </v-card>
       </v-dialog>
     </v-toolbar>
@@ -128,6 +140,8 @@ export default {
     terms_url: "",
     okta_issuer: "",
     userField: false,
+    baseEncode: "",
+    clientCredsScopes: "",
     user: "",
     headers: [
       {
@@ -173,6 +187,7 @@ export default {
 
   methods: {
     async initialize () {
+      var component = this
       var user = await this.$auth.getUser()
       var accessToken = await this.$auth.getAccessToken();
       const accessTokenobj = {
@@ -208,9 +223,26 @@ export default {
       })
 
     },
+    async getScopes(item) {
+      var component = this
+      var accessToken = await this.$auth.getAccessToken();
+      const accessTokenobj = {
+        accessToken
+      }
+      const baseURI =  "http://localhost:8000/scopes"
+      this.$http.get(baseURI, {
+        headers: {
+          'Authorization': `${accessToken}`
+        }
+      }).then((result) => {
+        console.log(result)
+      })
+    },
     viewItem (item) {
       this.editedIndex = this.clients.indexOf(item)
       this.viewedItem = Object.assign({}, item)
+      this.baseEncode = btoa(this.viewedItem.client_id + ":" + this.viewedItem.client_secret)
+      this.getScopes(this.viewedItem)
       this.dialog = true
     },
     createUserGrant (item) {

@@ -40,7 +40,7 @@ const O4Oclient = new okta.Client({
   orgUrl: orgUrl,
   authorizationMode: 'PrivateKey',
   clientId: clientId,
-  scopes: ['okta.clients.manage', 'okta.apps.manage'],
+  scopes: ['okta.clients.manage', 'okta.apps.manage', 'okta.authorizationServers.read'],
   privateKey: jwks,
   token: 'faketoken',
 });
@@ -190,6 +190,24 @@ const O4Oclient = new okta.Client({
       // a validation failed, inspect the error
       console.log(err);
     });
+  })
+
+  app.get("/scopes", function(req, res){
+    console.log(req.headers)
+    console.log(req.headers.authorization)
+    oktaJwtVerifier.verifyAccessToken(req.headers.authorization, "api://payments")
+    .then(jwt => {
+    var options = {
+      'method': 'GET',
+      'url': 'https://avb.oktapreview.com/api/v1/authorizationServers/default/scopes',
+      'headers':O4Oheaders
+    };
+    request(options, function (error, response) { 
+      if (error) throw new Error(error);
+      console.log(response.body);
+      res.send(response.body)
+    });
+    })
   })
 
   app.post("/developer-pkce-app", function(req, res){
