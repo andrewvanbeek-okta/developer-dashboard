@@ -58,16 +58,22 @@
                                     <v-list-item-content>
                                         <v-list-item-title>Scope Name: {{item.name}}</v-list-item-title>
                                     </v-list-item-content>
-                                       <v-list-item-content>
+                                    <v-list-item-content>
+                                        <v-list-item-title>description: {{item.description}}</v-list-item-title>
+                                    </v-list-item-content>
+                                    <v-list-item-content>
                                         <v-list-item-title>Consent: {{item.consent}}</v-list-item-title>
                                     </v-list-item-content>
-                                     <v-list-item-content>
+                                    <v-list-item-content>
                                         <v-list-item-title>Openid Scope: {{item.system}}</v-list-item-title>
                                     </v-list-item-content>
-                                    
+                                    <v-list-item-content>
+                                        <v-list-item-title>Part of Request: {{user_scopes.includes(item.name)}}</v-list-item-title>
+                                    </v-list-item-content>
 
                                     <v-list-item-icon>
-                                        <v-icon color="primary">mdi-plus</v-icon>
+                                        <v-icon color="primary" @click="addScope(item.name)" v-if="!user_scopes.includes(item.name)">mdi-plus</v-icon>
+                                        <v-icon color="primary" @click="removeScope(item.name)" v-else-if="user_scopes.includes(item.name)">mdi-minus</v-icon>
                                     </v-list-item-icon>
                                 </v-list-item>
                             </v-list>
@@ -130,15 +136,14 @@ export default {
         baseEncode: "",
         user_scopes: "openid email profile",
         items: [{
-                consent: "IMPLICIT",
-                default: false,
-                description: null,
-                id: "scpjeez3czmycNAvE0h7",
-                metadataPublish: "NO_CLIENTS",
-                name: "Admin",
-                system: false
-            }
-        ],
+            consent: "IMPLICIT",
+            default: false,
+            description: null,
+            id: "scpjeez3czmycNAvE0h7",
+            metadataPublish: "NO_CLIENTS",
+            name: "Admin",
+            system: false
+        }],
         clientCredsScopes: "",
         user: "",
         headers: [{
@@ -224,6 +229,16 @@ export default {
                 component.initialize()
             })
 
+        },
+        async addScope(item) {
+            if (!this.user_scopes.includes(item)) {
+                this.user_scopes = this.user_scopes + " " + item
+            }
+        },
+        async removeScope(item) {
+            if (this.user_scopes.includes(" " + item)) {
+                this.user_scopes = this.user_scopes.replace(" " + item, '')
+            }
         },
         async getScopes(item) {
             var component = this
