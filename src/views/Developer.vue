@@ -66,11 +66,7 @@
                                     </v-list-item-content>
                                     <v-list-item-content>
                                         <v-list-item-title>Openid Scope: {{item.system}}</v-list-item-title>
-                                    </v-list-item-content>
-                                    <v-list-item-content>
-                                        <v-list-item-title>Part of Request: {{user_scopes.includes(item.name)}}</v-list-item-title>
-                                    </v-list-item-content>
-
+                                    </v-list-item-content>                           
                                     <v-list-item-icon>
                                         <v-icon color="primary" @click="addScope(item.name)" v-if="!user_scopes.includes(item.name)">mdi-plus</v-icon>
                                         <v-icon color="primary" @click="removeScope(item.name)" v-else-if="user_scopes.includes(item.name)">mdi-minus</v-icon>
@@ -95,7 +91,7 @@
                             --header 'Authorization: Basic {{baseEncode}}' \<br>
                             --header 'Content-Type: application/x-www-form-urlencoded' \<br>
                             --data-urlencode 'grant_type=client_credentials' \<br>
-                            --data-urlencode 'scope=openid email profile'
+                            --data-urlencode '{{client_creds_scopes}}'
                         </div>
                         <br>
                     </v-card>
@@ -144,7 +140,7 @@ export default {
             name: "Admin",
             system: false
         }],
-        clientCredsScopes: "",
+        client_creds_scopes: "",
         user: "",
         headers: [{
                 text: 'Oauth Clients',
@@ -234,10 +230,17 @@ export default {
             if (!this.user_scopes.includes(item)) {
                 this.user_scopes = this.user_scopes + " " + item
             }
+            if (!this.client_creds_scopes.includes(item)) {
+                this.client_creds_scopes = this.client_creds_scopes + " " + item
+            }
         },
         async removeScope(item) {
             if (this.user_scopes.includes(" " + item)) {
                 this.user_scopes = this.user_scopes.replace(" " + item, '')
+            }
+
+            if(this.client_creds_scopes.includes(" " + item)) {
+                this.client_creds_scopes = this.client_creds_scopes.replace(" " + item, '')
             }
         },
         async getScopes(item) {
