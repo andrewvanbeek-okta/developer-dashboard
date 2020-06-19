@@ -40,7 +40,7 @@ const O4Oclient = new okta.Client({
   orgUrl: orgUrl,
   authorizationMode: 'PrivateKey',
   clientId: clientId,
-  scopes: ['okta.clients.manage', 'okta.apps.manage', 'okta.authorizationServers.read'],
+  scopes: ['okta.clients.manage', 'okta.apps.manage', 'okta.authorizationServers.read', 'okta.authorizationServers.manage'],
   privateKey: jwks,
   token: 'faketoken',
 });
@@ -82,7 +82,7 @@ const O4Oclient = new okta.Client({
             },
             form: {
               'grant_type': 'client_credentials',
-              'scope': 'okta.clients.manage',
+              'scope': 'okta.clients.manage okta.authorizationServers.read ',
               'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
               'client_assertion': jwt
             }
