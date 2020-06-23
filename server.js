@@ -334,43 +334,113 @@ app.delete("/oauthClient", function(req, res){
   });
 })
 
+//bonus use of OPA for Oauth Autorization and Fine Grained Authorization
+
 app.get("/rego", function(req, res){
   // res.sendFile(__dirname + "/test.rego")
   // console.log(req.headers);
-    request({
-        url: 'http://localhost:8181/v1/policies/example',
-        method: 'PUT',
-        headers: {
-          'cache-control': 'no-cache',
-        },
-        encoding: null,
-        body: fs.createReadStream(__dirname + "/editable.rego")
-       }, (error, response, body) => {
-            if (error) {
-               res.json({name : error});
-            } else {
-              console.log(response.body)
-            }
-       });
+  request({
+    url: 'http://localhost:8181/v1/policies/example',
+    method: 'PUT',
+    headers: {
+      'cache-control': 'no-cache',
+    },
+    encoding: null,
+    body: fs.createReadStream(__dirname + "/editable.rego")
+  }, (error, response, body) => {
+    if (error) {
+      res.json({name : error});
+    } else {
+      console.log(response.body)
+    }
+  });
+})
+
+
+app.post("/rego", async function(req, res){
+  console.log(req.body)
+  var newRego = req.body.rego
+  await fs.writeFileSync(__dirname + "/editable.rego", newRego)
+  request({
+    url: 'http://localhost:8181/v1/policies/example',
+    method: 'PUT',
+    headers: {
+      'cache-control': 'no-cache',
+    },
+    encoding: null,
+    body: fs.createReadStream(__dirname + "/editable.rego")
+  }, (error, response, body) => {
+    if (error) {
+      res.json({name : error});
+    } else {
+      console.log(response.body)
+      res.send({"message": "wrote to file"})
+    }
+  });
+})
+
+app.post("/opaAuthz", async function(req, res){
+  var request = require("request");
+  var options = { method: 'POST',
+    url: 'http://localhost:8181/v1/data/httpapi/authz',
+    headers:
+     { 'Cache-Control': 'no-cache',
+       'Content-Type': 'application/json' },
+    body:
+     { input: req.body},
+    json: true };
+
+  request(options, function (error, response, body) {
+    if (error) throw new Error(error);
+    console.log(body);
+    res.send(response.body)
+  });
+})
+
+app.delete("/rego", async function(req, res){
+  var request = require("request");
+
+  var options = { method: 'DELETE',
+  url: 'http://localhost:8181/v1/policies/example',
+  headers:
+  { 'Cache-Control': 'no-cache' } };
+
+  request(options, function (error, response, body) {
+    if (error) throw new Error(error);
+    res.send({"message": "deleted"})
+  });
 })
 
 app.get("/opa", function(req, res){
   request({
-      url: 'http://localhost:8181/v1/policies/example',
-      method: 'GET',
-      headers: {
-        'cache-control': 'no-cache',
-      },
-     }, (error, response, body) => {
-          if (error) {
-             res.json({name : error});
-          } else {
-            console.log(response.body)
-            var policy = JSON.parse(response.body)
-            res.json({rego: policy.result.raw})
-          }
-     });
+    url: 'http://localhost:8181/v1/policies/example',
+    method: 'GET',
+    headers: {
+      'cache-control': 'no-cache',
+    },
+  }, (error, response, body) => {
+    if (error) {
+      res.json({name : error});
+    } else {
+      console.log(response.body)
+      var policy = JSON.parse(response.body)
+      if(policy.result) {
+        res.json({rego: policy.result.raw})
+      } else {
+        fs.readFile(__dirname + "/default.rego", "utf8", function(err, data){
+          if(err) throw err;
+          res.json({rego: data});
+        });
+      }
+    }
+  });
 })
+
+
+
+
+
+// i want the ability to add scopes, claims, audience to an opa policy
 
 app.listen(process.env.PORT || 8000, function () {
   console.log('Example app listening on port 8000!');
