@@ -3,6 +3,7 @@ import Router from 'vue-router'
 import Home from './views/Home.vue'
 import Login from './views/Login'
 import Developer from './views/Developer.vue'
+import Opa from './views/Opa.vue'
 import Auth from '@okta/okta-vue'
 
 Vue.use(Router)
@@ -35,6 +36,14 @@ var router = new Router({
       path: '/developer',
       name: 'developer',
       component: Developer,
+      meta: {
+        requiresAuth: true
+      }
+    },
+    {
+      path: '/opa',
+      name: 'opa',
+      component: Opa,
       meta: {
         requiresAuth: true
       }

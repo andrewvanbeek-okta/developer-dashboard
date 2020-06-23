@@ -1,0 +1,8 @@
+.env
+.env.example
+.env.local
+.env.staging
+
+.public.pem
+.private.pem
+.jwk.json
