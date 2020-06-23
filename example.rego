@@ -26,7 +26,7 @@ allow {
   subordinates[input.user][_] == username
 }
 
-user_owns_token { token.payload.aud == "api://super.unidemo" }
+user_owns_token { token.payload.aud == "api://payments" }
 user_owns_scope { "openid" == token.payload.scp[i] }
 
 # Helper to get the token payload.

@@ -1,6 +1,13 @@
 <template>
 
   <v-row justify="center">
+    <v-dialog v-model="dialog" scrollable max-width="800px">
+    <v-card>
+    {{opaResponse}}
+    <v-btn color="blue darken-1" text @click="dialog = false">Close</v-btn>
+    </v-card>
+    </v-dialog>
+  
     <v-col cols="6">
       <v-card width="1000px" scrollable="true">
         <v-card-title>Test Authorization</v-card-title>
@@ -84,6 +91,8 @@ export default {
   data: () => ({
 
     opaText: "",
+    opaResponse: "",
+    dialog: false,
     method: "GET",
     path: "finance",
     access_token: "",
@@ -158,6 +167,8 @@ export default {
           "token": component.access_token
       })
       console.log(opa)
+      component.opaResponse = opa.data
+      component.dialog = true
     },
     async resetRego() {
       const baseURI = "http://localhost:8000/rego"
