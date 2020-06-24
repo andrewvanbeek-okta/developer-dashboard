@@ -6,7 +6,6 @@
         <v-btn color="blue darken-1" text @click="dialog = false">Close</v-btn>
       </v-card>
     </v-dialog>
-
     <v-col cols="6">
       <v-card width="1000px" scrollable="true">
         <v-card-title>Test Authorization</v-card-title>
@@ -44,9 +43,9 @@
           </v-container>
         </v-form>
         <div class="d-block pa-2 black white--text scroll">
-          What we are going to send to Open Policy Agent<br><br>
-
-
+          What we are going to send to Open Policy Agent
+          <br />
+          <br />
           {
           "input":{
           "method": "{{method}}",
@@ -59,6 +58,7 @@
       </v-card>
     </v-col>
     <v-col cols="6">
+      <v-progress-circular :width="3" color="red" indeterminate></v-progress-circular>
       <v-card max-height="200px" width="1000px" scrollable="true">
         <v-card-title>Edit Opa Policy</v-card-title>
         <v-divider></v-divider>
@@ -119,12 +119,12 @@ export default {
     dialog(val) {
       val || this.close();
     },
-    async useCurrentToken(newValue){
-      var useDashToken = this.useCurrentTokens
-      if(newValue) {
+    async useCurrentToken(newValue) {
+      var useDashToken = this.useCurrentTokens;
+      if (newValue) {
         this.access_token = await this.$auth.getAccessToken();
       } else {
-        this.access_token = ""
+        this.access_token = "";
       }
     }
   },
@@ -161,7 +161,7 @@ export default {
       var regoToSend = this.createFormattedString(jsonContent.content);
       console.log(regoToSend);
       var opa = await this.$http.post(baseURI, { rego: regoToSend });
-    }, 
+    },
     async sendToOpa() {
       var component = this;
       const baseURI = "http://localhost:8000/opaAuthz";

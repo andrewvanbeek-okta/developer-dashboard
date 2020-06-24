@@ -40,7 +40,7 @@ const O4Oclient = new okta.Client({
   orgUrl: orgUrl,
   authorizationMode: 'PrivateKey',
   clientId: clientId,
-  scopes: ['okta.clients.manage', 'okta.apps.manage', 'okta.authorizationServers.read', 'okta.authorizationServers.manage'],
+  scopes: ['okta.clients.manage', 'okta.apps.manage'],
   privateKey: jwks,
   token: 'faketoken',
 });
@@ -177,6 +177,7 @@ app.post("/developer-app", function(req, res){
         }
       }
     }
+    console.log(application)
 
     O4Oclient.createApplication(application)
     .then(application => {
