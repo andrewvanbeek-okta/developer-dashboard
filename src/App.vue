@@ -1,10 +1,6 @@
 <template>
   <v-app>
-    <v-app-bar
-      app
-      color="primary"
-      dark
-    >
+    <v-app-bar app color="primary" dark>
       <div class="d-flex align-center">
         <v-img
           alt="Vuetify Logo"
@@ -18,25 +14,48 @@
       </div>
 
       <v-spacer></v-spacer>
+      <v-btn color="primary" class="mb-2" v-if="authenticated" to="/opa">Test Tokens</v-btn>
+      <v-btn color="primary" class="mb-2" v-if="authenticated" to="/developer">developer dashboard</v-btn>
+      <button
+        v-else
+        v-on:click="$auth.loginRedirect"
+        color="primary"
+        dark
+        class="mb-2"
+        id="login-button"
+      >Login</button>
     </v-app-bar>
 
     <v-content>
-      <router-view/>
+      <router-view />
     </v-content>
   </v-app>
 </template>
 
 <script>
-var logo = "https://www.okta.com/sites/all/themes/Okta/images/logos/developer/Dev_Logo-03_White_Large.png"
-if(process.env) {
-  logo = process.env.VUE_APP_LOGO
+var logo =
+  "https://www.okta.com/sites/all/themes/Okta/images/logos/developer/Dev_Logo-03_White_Large.png";
+if (process.env) {
+  logo = process.env.VUE_APP_LOGO;
 }
 
 export default {
-  name: 'App',
-
+  name: "App",
+  created() {
+    this.isAuthenticated();
+  },
+  mounted() {
+    this.isAuthenticated();
+  },
   data: () => ({
-    logo: logo
+    logo: logo,
+    authenticated: false
   }),
+  methods: {
+    async isAuthenticated() {
+      console.log("HERE");
+      this.authenticated = await this.$auth.isAuthenticated();
+    }
+  }
 };
 </script>

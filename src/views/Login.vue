@@ -35,7 +35,7 @@ export default {
         baseUrl: sampleConfig.oidc.issuer.split('/oauth2')[0],
         clientId: sampleConfig.oidc.clientId,
         redirectUri: sampleConfig.oidc.redirectUri,
-        logo: require('@/assets/logo.png'),
+        logo: process.env.VUE_APP_LOGO || require('@/assets/logo.png'),
         i18n: {
           en: {
             'primaryauth.title': 'Sign in to Vue & Company'
