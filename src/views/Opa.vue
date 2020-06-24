@@ -2,7 +2,8 @@
   <v-row justify="center">
     <v-dialog v-model="dialog" scrollable max-width="800px">
       <v-card>
-        {{opaResponse}}
+        <v-card-title>{{opaMessageTitle}}</v-card-title>
+        <v-card-text class="d-block pa-2 black white--text scroll">{{opaResponse}}</v-card-text>
         <v-btn color="blue darken-1" text @click="dialog = false">Close</v-btn>
       </v-card>
     </v-dialog>
@@ -59,8 +60,18 @@
     </v-col>
     <v-col cols="6">
       <v-card max-height="200px" width="1000px" scrollable="true">
-        <v-card-title>Open Policy Agent Status: <span v-if="opaOff">Not Available</span><span v-else>All systems go</span></v-card-title>
-        <v-progress-linear color="red lighten-2" buffer-value="0" stream></v-progress-linear>
+        <v-card-title>
+          Open Policy Agent Status:
+          <span v-if="opaOff">
+            Not Available
+            <v-btn icon @click="opaInfo()">
+              <v-icon>?</v-icon>
+            </v-btn>
+          </span>
+          <span v-else>All systems go</span>
+        </v-card-title>
+        <v-progress-linear v-if="opaOff" color="red lighten-2" buffer-value="0" stream></v-progress-linear>
+        <v-progress-linear color="green" buffer-value="0" value="100" stream v-else></v-progress-linear>
         <v-divider></v-divider>
         <v-card-title>Edit Opa Policy</v-card-title>
         <v-divider></v-divider>
@@ -89,7 +100,8 @@ export default {
   data: () => ({
     opaText: "",
     useCurrentToken: false,
-    opaOff: true,
+    opaMessageTitle: "",
+    opaOff: false,
     opaResponse: "",
     dialog: false,
     method: "GET",
@@ -149,13 +161,27 @@ export default {
       this.user = user.preferred_username;
       const baseURI = "http://localhost:8000/opa";
       var opa = await this.$http.get(baseURI);
-      this.opaOff = opa.data.name.code == "ECONNREFUSED"
+      if (opa.data.name) {
+        this.opaOff = opa.data.name.code == "ECONNREFUSED";
+        this.opaInfo();
+      }
       this.regoFragements = opa.data.rego.split("\n");
       var rego = opa.data.rego.split("\n").join("</br>");
       var niceRego = this.createPrettyString(this.regoFragements);
       this.editor = new Editor({
         content: niceRego
       });
+      component.saveRego()
+    },
+    opaInfo() {
+      if (this.opaOff) {
+        this.opaMessageTitle =
+          "You do not have Open Policy Agent running.  Run this command in the terminal and refresh the page(prereq is to have docker)";
+        this.opaResponse =
+          "docker run -p 8181:8181 openpolicyagent/opa \
+    run --server --log-level debug";
+        this.dialog = true;
+      }
     },
     async saveRego() {
       const baseURI = "http://localhost:8000/rego";
@@ -175,6 +201,7 @@ export default {
         token: component.access_token
       });
       console.log(opa);
+      component.opaMessageTitle = "Response from Opa!";
       component.opaResponse = opa.data;
       component.dialog = true;
     },

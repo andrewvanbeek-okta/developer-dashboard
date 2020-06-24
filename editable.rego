@@ -8,6 +8,7 @@ default allow = false
 # Allow users to get their own salaries.
 allow {
 input.method == "GET"
+input.path == "finance"
 user_owns_token
 user_owns_scope
 }
@@ -16,6 +17,7 @@ user_owns_scope
 allow {
 some username
 input.method == "GET"
+input.path = ["finance", "salary", username]
 subordinates[input.user][_] == username
 }
 
