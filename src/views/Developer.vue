@@ -113,7 +113,7 @@
                 <br />--header 'Content-Type: application/x-www-form-urlencoded' \
                 <br />--data-urlencode 'grant_type=client_credentials' \
                 <br />
-                --data-urlencode '{{client_creds_scopes}}'
+                --data-urlencode 'scope={{client_creds_scopes}}'
               </div>
               <br />
             </v-card>
