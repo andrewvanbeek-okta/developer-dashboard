@@ -58,8 +58,10 @@
       </v-card>
     </v-col>
     <v-col cols="6">
-      <v-progress-circular :width="3" color="red" indeterminate></v-progress-circular>
       <v-card max-height="200px" width="1000px" scrollable="true">
+        <v-card-title>Open Policy Agent Status: <span v-if="opaOff">Not Available</span><span v-else>All systems go</span></v-card-title>
+        <v-progress-linear color="red lighten-2" buffer-value="0" stream></v-progress-linear>
+        <v-divider></v-divider>
         <v-card-title>Edit Opa Policy</v-card-title>
         <v-divider></v-divider>
         <div class="d-block pa-2 black white--text scroll">
@@ -87,6 +89,7 @@ export default {
   data: () => ({
     opaText: "",
     useCurrentToken: false,
+    opaOff: true,
     opaResponse: "",
     dialog: false,
     method: "GET",
@@ -146,6 +149,7 @@ export default {
       this.user = user.preferred_username;
       const baseURI = "http://localhost:8000/opa";
       var opa = await this.$http.get(baseURI);
+      this.opaOff = opa.data.name.code == "ECONNREFUSED"
       this.regoFragements = opa.data.rego.split("\n");
       var rego = opa.data.rego.split("\n").join("</br>");
       var niceRego = this.createPrettyString(this.regoFragements);
