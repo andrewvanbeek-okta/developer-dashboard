@@ -79,7 +79,7 @@
                         <br>
                         <div class="d-block pa-2 black white--text">
                             <h3>Run command below</h3>
-                            npm i dev-dash-cli-user-login -g && dev-login --OKTA_ORG_URL={{okta_issuer}} --OKTA_CLIENT_ID={{viewedItem.client_id}} --OKTA_REDIRECT_PORT=4000 --OKTA_SCOPES={{user_scopes}}
+                            npm i dev-dash-cli-user-login -g && dev-login --OKTA_ORG_URL={{okta_issuer}} --OKTA_CLIENT_ID={{viewedItem.client_id}} --OKTA_REDIRECT_PORT=4000 --OKTA_SCOPES="{{user_scopes}}"
                         </div>
                         <br>
                     </v-card>
