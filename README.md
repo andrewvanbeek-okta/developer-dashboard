@@ -29,7 +29,11 @@ This script is necessary to create a backend service client to generate O4O toke
 More documentation on that entire process here: https://developer.okta.com/docs/guides/implement-oauth-for-okta/overview/ 
 
 ### It's important that you only run this script once.
- This script populates your .env file as well as local private keys for the project itself. If you need to run it again, make sure to do the following:
+This script populates your .env file as well as local private keys for the project itself. If you need to run it again or start fresh, run the following script:
+```
+node O4OScriptDestroy.js
+```
+Which will do the following:
 1. Delete up the .jwk, .pem files generated from the project directory, and clear the O4O_CLIENT_ID line from your env file
 2. Remove the "DevDashboard-O4OClient" generated in your okta tenant
 
