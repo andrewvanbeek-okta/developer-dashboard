@@ -16,14 +16,13 @@
       <v-spacer></v-spacer>
       <v-btn color="primary" class="mb-2" v-if="authenticated" to="/opa">Test Tokens</v-btn>
       <v-btn color="primary" class="mb-2" v-if="authenticated" to="/developer">developer dashboard</v-btn>
-      <button
-        v-else
-        v-on:click="$auth.loginRedirect"
+      <v-btn
+        to="/login"
         color="primary"
         dark
         class="mb-2"
         id="login-button"
-      >Login</button>
+      v-else>Login</v-btn>
     </v-app-bar>
 
     <v-content>
@@ -47,14 +46,19 @@ export default {
   mounted() {
     this.isAuthenticated();
   },
+  watch: {
+    // Everytime the route changes, check for auth status
+    '$route': 'isAuthenticated'
+  },
   data: () => ({
     logo: logo,
     authenticated: false
   }),
   methods: {
     async isAuthenticated() {
-      console.log("HERE");
       this.authenticated = await this.$auth.isAuthenticated();
+      console.log(this.authenticated)
+
     }
   }
 };

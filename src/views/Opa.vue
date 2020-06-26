@@ -11,9 +11,6 @@
       <v-card width="1000px" scrollable="true">
         <v-card-title>Test Authorization</v-card-title>
         <v-divider></v-divider>
-        <v-card-actions>
-          <v-btn color="blue darken-1" text @click="sendToOpa()">Send</v-btn>
-        </v-card-actions>
         <v-divider></v-divider>
         <v-form v-model="valid">
           <v-container>
@@ -27,21 +24,23 @@
               </v-col>
             </v-row>
             <v-row>
-              <v-col cols="12" md="6">
+              <v-col cols="9">
                 <v-label>Copy and Paste your Access Token</v-label>
                 <v-textarea
                   outlined
                   name="input-7-4"
                   label="Paste a Access Token here"
+                  rows="12"
                   v-model="access_token"
                 ></v-textarea>
               </v-col>
-              <v-col cols="6">
+              <v-col cols="3">
                 <v-label>Use the token from the Dev Dashboard</v-label>
                 <v-switch value v-model="useCurrentToken"></v-switch>
               </v-col>
             </v-row>
           </v-container>
+          <v-btn color="primary" dark class="mb-2 send" @click="sendToOpa()">Send</v-btn>
         </v-form>
         <div class="d-block pa-2 black white--text scroll">
           What we are going to send to Open Policy Agent
@@ -239,10 +238,14 @@ export default {
   }
 };
 </script>
-
+ 
 <style>
 .scroll {
   overflow-y: auto;
   height: 600px;
+}
+
+.send {
+ float: right;
 }
 </style>
