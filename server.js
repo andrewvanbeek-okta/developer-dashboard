@@ -199,7 +199,7 @@ app.get("/scopes", function(req, res){
   .then(jwt => {
     var options = {
       'method': 'GET',
-      'url': 'https://avb.oktapreview.com/api/v1/authorizationServers/default/scopes',
+      'url': process.env.ORG_URL + '/api/v1/authorizationServers/' + process.env.VUE_APP_OKTA_ISSUER.split("oauth2/")[1] + '/scopes',
       'headers':O4Oheaders
     };
     request(options, function (error, response) {
