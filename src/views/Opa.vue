@@ -40,7 +40,9 @@
               </v-col>
             </v-row>
           </v-container>
+           <v-row justify="center">
           <v-btn color="primary" dark class="mb-2 send" @click="sendToOpa()">Send</v-btn>
+           </v-row>
         </v-form>
         <div class="d-block pa-2 black white--text scroll">
           What we are going to send to Open Policy Agent
@@ -245,7 +247,5 @@ export default {
   height: 600px;
 }
 
-.send {
- float: right;
-}
+
 </style>
