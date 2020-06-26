@@ -15,7 +15,14 @@
         <v-btn color="primary" dark class="mb-2" @click="createUserGrant">New User Grant Oauth App</v-btn>
         <v-divider class="mx-4" inset vertical></v-divider>
         <v-btn v-if="authenticated" color="primary" dark class="mb-2" @click="logout">Logout</v-btn>
-        <button v-else v-on:click="$auth.loginRedirect" color="primary" dark class="mb-2" id="login-button">Login</button>
+        <button
+          v-else
+          v-on:click="$auth.loginRedirect"
+          color="primary"
+          dark
+          class="mb-2"
+          id="login-button"
+        >Login</button>
         <v-dialog v-model="dialog" max-width="800px">
           <v-card>
             <v-card-title>
@@ -60,7 +67,7 @@
               </v-container>
             </v-card-text>
             <v-expansion-panel>
-              <v-card max-width="800" max-height="200" class="mx-auto scroll">
+              <v-card v-if="!creatingApp" max-width="800" max-height="200" class="mx-auto scroll">
                 <v-toolbar color="primary" dark>
                   <v-toolbar-title>Available Scopes</v-toolbar-title>
                   <v-spacer></v-spacer>
@@ -95,13 +102,19 @@
                 </v-list>
               </v-card>
             </v-expansion-panel>
-            <v-card v-if="!viewedItem.client_secret">
+            <v-card v-if="!viewedItem.client_secret && !creatingApp">
               <br />
               <div class="d-block pa-2 black white--text">
                 <h3>Run command below</h3>
                 npm i dev-dash-cli-user-login -g && dev-login --OKTA_ORG_URL={{okta_issuer}} --OKTA_CLIENT_ID={{viewedItem.client_id}} --OKTA_REDIRECT_PORT=4000 --OKTA_SCOPES="{{user_scopes}}"
               </div>
               <br />
+            </v-card>
+            <v-card v-else-if="creatingApp">
+              <div class="d-block pa-2 black white--text">
+              to use this grant make sure you have the okta federated broker mode turned on!
+              If you don't find the app you create in Okta and assign user groups in Okta.
+              </div>
             </v-card>
             <v-card v-else>
               <br />
@@ -144,6 +157,7 @@ export default {
     dialog: false,
     authenticated: false,
     new_client_name: "",
+    creatingApp: false,
     policy_url: "",
     terms_url: "",
     okta_issuer: "",
@@ -302,6 +316,7 @@ export default {
       this.dialog = true;
     },
     createUserGrant(item) {
+      this.creatingApp = true
       this.editedIndex = this.clients.indexOf(item);
       this.viewedItem = Object.assign({}, item);
       this.userField = true;
@@ -327,6 +342,7 @@ export default {
     close() {
       this.dialog = false;
       this.userField = false;
+      this.creatingApp = false;
       setTimeout(() => {
         this.viewedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
