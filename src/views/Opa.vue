@@ -25,7 +25,7 @@
             </v-row>
             <v-row>
               <v-col cols="9">
-                <v-label>Copy and Paste your Access Token</v-label>
+                <v-label>Copy and Paste your Access Token</v-label>   <v-btn color="blue darken-1" text @click="parseJwt()">Show Token Contents</v-btn>
                 <v-textarea
                   outlined
                   name="input-7-4"
@@ -40,9 +40,9 @@
               </v-col>
             </v-row>
           </v-container>
-           <v-row justify="center">
-          <v-btn color="primary" dark class="mb-2 send" @click="sendToOpa()">Send</v-btn>
-           </v-row>
+          <v-row justify="center">
+            <v-btn color="primary" dark class="mb-2 send" @click="sendToOpa()">Send</v-btn>
+          </v-row>
         </v-form>
         <div class="d-block pa-2 black white--text scroll">
           What we are going to send to Open Policy Agent
@@ -77,35 +77,35 @@
         <v-card-title>Edit Opa Policy</v-card-title>
         <v-divider></v-divider>
         <v-card-text>
-           <v-form>
-          <v-container>
-            <v-row>
-              <v-col cols="12" md="2">
-                <v-label>Check Token for scope below</v-label>
-                <v-switch v-model="checkForScope" value="John"></v-switch>
-                <v-text-field v-model="scopeToCheck"></v-text-field>
-              </v-col>
-              <v-col cols="12" md="2">
-                <v-label>Check Token for claim below</v-label>
-                <v-switch v-model="checkForClaim" value=""></v-switch>
-                <v-text-field v-model="claimToCheck"></v-text-field>
-              </v-col>
-              <v-col cols="12" md="2">
-                <v-label>Check Token for role or group name</v-label>
-                <v-switch v-model="checkForGroup" value="John"></v-switch>
-                <v-text-field v-model="groupForCheck"></v-text-field>
-              </v-col>
-              <v-col cols="12" md="2">
-                <v-label>Check Token for  specific users</v-label>
-                <v-switch v-model="checkForUser" value="John"></v-switch>
-                <v-text-field v-model="userForCheck"></v-text-field>
-              </v-col>
+          <v-form>
+            <v-container>
+              <v-row>
+                <v-col cols="12" md="2">
+                  <v-label>Check Token for scope below</v-label>
+                  <v-switch v-model="checkForScope" value="John"></v-switch>
+                  <v-text-field v-model="scopeToCheck"></v-text-field>
+                </v-col>
+                <v-col cols="12" md="2">
+                  <v-label>Check Token for claim below</v-label>
+                  <v-switch v-model="checkForClaim" value></v-switch>
+                  <v-text-field v-model="claimToCheck"></v-text-field>
+                </v-col>
+                <v-col cols="12" md="2">
+                  <v-label>Check Token for role or group name</v-label>
+                  <v-switch v-model="checkForGroup" value="John"></v-switch>
+                  <v-text-field v-model="groupForCheck"></v-text-field>
+                </v-col>
+                <v-col cols="12" md="2">
+                  <v-label>Check Token for specific users</v-label>
+                  <v-switch v-model="checkForUser" value="John"></v-switch>
+                  <v-text-field v-model="userForCheck"></v-text-field>
+                </v-col>
+              </v-row>
+            </v-container>
+            <v-row justify="center">
+              <v-btn color="primary" dark class="mb-2 send" @click="easyAuthorization()">Apply</v-btn>
             </v-row>
-          </v-container>
-           <v-row justify="center">
-          <v-btn color="primary" dark class="mb-2 send" @click="easyAuthorization()">Apply</v-btn>
-           </v-row>
-        </v-form>
+          </v-form>
         </v-card-text>
         <div class="d-block pa-2 black white--text scroll">
           <!-- <h3>Run command below</h3>
@@ -200,7 +200,7 @@ export default {
       this.editor = new Editor({
         content: niceRego
       });
-      component.saveRego()
+      component.saveRego();
     },
     opaInfo() {
       if (this.opaOff) {
@@ -220,37 +220,57 @@ export default {
       var regoToSend = this.createFormattedString(jsonContent.content);
       console.log(regoToSend);
       var opa = await this.$http.post(baseURI, { rego: regoToSend });
-      console.log(opa)
+      console.log(opa);
+    },
+    parseJwt() {
+      var base64Url = this.access_token.split(".")[1];
+      var base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      var jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map(function(c) {
+            return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+          })
+          .join("")
+      );
+      this.opaMessageTitle = "Parsed Access Token"
+      this.opaResponse = JSON.parse(jsonPayload);
+      this.dialog = true
     },
     async easyAuthorization() {
-      var component = this
+      var component = this;
       const baseURI = "http://localhost:8000/easyRego";
       var opa = await this.$http.get(baseURI);
       this.regoFragements = opa.data.rego.split("\n");
       var rego = opa.data.rego.split("\n").join("</br>");
       var niceRego = this.createPrettyString(this.regoFragements);
-      var regoWithSettings = this.easyAuthorizationSettings(niceRego)
-      this.editor.setContent(regoWithSettings)
-      this.saveRego()
+      var regoWithSettings = this.easyAuthorizationSettings(niceRego);
+      this.editor.setContent(regoWithSettings);
+      this.saveRego();
     },
-    easyAuthorizationSettings(rego){
-      var regoSettingsString = ""
-      if(this.checkForClaim){
-         regoSettingsString += '<p>' + 'user_owns_claim' + '</p></br>'
-         rego.replace("#claim#", this.claimToCheck)
-      } 
-      if(this.checkForScope) {
-         regoSettingsString += '<p>' + 'user_owns_scope' + '</p></br>'
-         rego.replace("#scope#", this.scopeToCheck)
-      } 
-      if(this.checkForGroup) {
-          regoSettingsString += '<p>' + 'user_owns_role' + '</p></br>'
-      } 
-      if(this.checkForUser) {
-        regoSettingsString += '<p>' + 'user_owns_username' + '</p></br>'
+    easyAuthorizationSettings(rego) {
+      var regoSettingsString = "";
+      if (this.checkForClaim) {
+        regoSettingsString += "<p>" + "user_owns_claim" + "</p></br>";
+        rego.replace("#claim#", this.claimToCheck);
       }
-      var newRego = rego.replace("#placeholder#", regoSettingsString).replace("#username#", this.userForCheck).replace("#role#", this.groupForCheck).replace("#scope#", this.scopeToCheck).replace("#claim#", this.claimToCheck)
-      return newRego
+      if (this.checkForScope) {
+        regoSettingsString += "<p>" + "user_owns_scope" + "</p></br>";
+        rego.replace("#scope#", this.scopeToCheck);
+      }
+      if (this.checkForGroup) {
+        regoSettingsString += "<p>" + "user_owns_role" + "</p></br>";
+      }
+      if (this.checkForUser) {
+        regoSettingsString += "<p>" + "user_owns_username" + "</p></br>";
+      }
+      var newRego = rego
+        .replace("#placeholder#", regoSettingsString)
+        .replace("#username#", this.userForCheck)
+        .replace("#role#", this.groupForCheck)
+        .replace("#scope#", this.scopeToCheck)
+        .replace("#claim#", this.claimToCheck);
+      return newRego;
     },
     async sendToOpa() {
       var component = this;
@@ -305,6 +325,4 @@ export default {
   overflow-y: auto;
   height: 600px;
 }
-
-
 </style>
