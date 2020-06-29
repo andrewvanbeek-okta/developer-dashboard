@@ -83,22 +83,23 @@
                 <v-col cols="12" md="2">
                   <v-label>Check Token for scope below</v-label>
                   <v-switch v-model="checkForScope" value="John"></v-switch>
-                  <v-text-field v-model="scopeToCheck"></v-text-field>
+                  <v-text-field placeholder="scope value" v-model="scopeToCheck"></v-text-field>
                 </v-col>
                 <v-col cols="12" md="2">
                   <v-label>Check Token for claim below</v-label>
                   <v-switch v-model="checkForClaim" value></v-switch>
-                  <v-text-field v-model="claimToCheck"></v-text-field>
+                   <v-text-field placeholder="claim title" v-model="claimKey"></v-text-field>
+                  <v-text-field placeholder="claim value" v-model="claimToCheck"></v-text-field>
                 </v-col>
                 <v-col cols="12" md="2">
                   <v-label>Check Token for role or group name</v-label>
                   <v-switch v-model="checkForGroup" value="John"></v-switch>
-                  <v-text-field v-model="groupForCheck"></v-text-field>
+                  <v-text-field placeholder="role value" v-model="groupForCheck"></v-text-field>
                 </v-col>
                 <v-col cols="12" md="2">
                   <v-label>Check Token for specific users</v-label>
                   <v-switch v-model="checkForUser" value="John"></v-switch>
-                  <v-text-field v-model="userForCheck"></v-text-field>
+                  <v-text-field placeholder="username value" v-model="userForCheck"></v-text-field>
                 </v-col>
               </v-row>
             </v-container>
@@ -135,6 +136,7 @@ export default {
     useCurrentToken: false,
     opaMessageTitle: "",
     checkForClaim: false,
+    claimKey: "",
     claimToCheck: "",
     checkForScope: false,
     scopeToCheck: "",
@@ -269,7 +271,8 @@ export default {
         .replace("#username#", this.userForCheck)
         .replace("#role#", this.groupForCheck)
         .replace("#scope#", this.scopeToCheck)
-        .replace("#claim#", this.claimToCheck);
+        .replace("#claim#", this.claimToCheck)
+        .replace("_replace_claim_key", this.claimKey);
       return newRego;
     },
     async sendToOpa() {

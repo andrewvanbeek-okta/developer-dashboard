@@ -4,17 +4,20 @@ import input
 default allow = false
 # your content
 allow {
+user_owns_claim
 user_owns_scope
+user_owns_role
+user_owns_username
 }
 
 # Helper to get the token payload.
-user_owns_claim { "" == token.payload._replace_claim_key }
+user_owns_claim { "897831y86t47t674t75764" == token.payload.org_id }
 
 user_owns_scope { "openid" == token.payload.scp[i] }
 
-user_owns_username { "" == token.payload.sub }
+user_owns_username { "andrew.vanbeek@okta.com" == token.payload.sub }
 
-user_owns_role { "xvxvdxfv" == token.payload.roles[i] }
+user_owns_role { "roles::admin" == token.payload.roles[i] }
 
 token = {"payload": payload} {
 
