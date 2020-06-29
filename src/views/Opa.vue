@@ -108,6 +108,7 @@
             </v-row>
           </v-form>
         </v-card-text>
+         <v-label>Or Directly edit the OPA policy</v-label>
         <div class="d-block pa-2 black white--text scroll">
           <!-- <h3>Run command below</h3>
           <p v-for="fragment in regoFragements">{{fragment}}<br></p>-->
