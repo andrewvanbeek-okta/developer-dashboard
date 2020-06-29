@@ -12,7 +12,7 @@
         <v-card-title>Test Authorization</v-card-title>
         <v-divider></v-divider>
         <v-divider></v-divider>
-        <v-form v-model="valid">
+        <v-form>
           <v-container>
             <v-row>
               <v-col cols="12" md="4">
@@ -60,7 +60,7 @@
       </v-card>
     </v-col>
     <v-col cols="6">
-      <v-card max-height="200px" width="1000px" scrollable="true">
+      <v-card width="1000px" scrollable="true">
         <v-card-title>
           Open Policy Agent Status:
           <span v-if="opaOff">
@@ -76,6 +76,37 @@
         <v-divider></v-divider>
         <v-card-title>Edit Opa Policy</v-card-title>
         <v-divider></v-divider>
+        <v-card-text>
+           <v-form>
+          <v-container>
+            <v-row>
+              <v-col cols="12" md="2">
+                <v-label>Check Token for scope below</v-label>
+                <v-switch v-model="checkForScope" value="John"></v-switch>
+                <v-text-field v-model="scopeToCheck"></v-text-field>
+              </v-col>
+              <v-col cols="12" md="2">
+                <v-label>Check Token for claim below</v-label>
+                <v-switch v-model="checkForClaim" value=""></v-switch>
+                <v-text-field v-model="claimToCheck"></v-text-field>
+              </v-col>
+              <v-col cols="12" md="2">
+                <v-label>Check Token for role or group name</v-label>
+                <v-switch v-model="checkForGroup" value="John"></v-switch>
+                <v-text-field v-model="groupForCheck"></v-text-field>
+              </v-col>
+              <v-col cols="12" md="2">
+                <v-label>Check Token for  specific users</v-label>
+                <v-switch v-model="checkForUser" value="John"></v-switch>
+                <v-text-field v-model="userForCheck"></v-text-field>
+              </v-col>
+            </v-row>
+          </v-container>
+           <v-row justify="center">
+          <v-btn color="primary" dark class="mb-2 send" @click="easyAuthorization()">Apply</v-btn>
+           </v-row>
+        </v-form>
+        </v-card-text>
         <div class="d-block pa-2 black white--text scroll">
           <!-- <h3>Run command below</h3>
           <p v-for="fragment in regoFragements">{{fragment}}<br></p>-->
@@ -100,8 +131,17 @@ export default {
   client_name: "Developer",
   data: () => ({
     opaText: "",
+    on: true,
     useCurrentToken: false,
     opaMessageTitle: "",
+    checkForClaim: false,
+    claimToCheck: "",
+    checkForScope: false,
+    scopeToCheck: "",
+    checkForGroup: false,
+    groupForCheck: "",
+    checkForUser: false,
+    userForCheck: "",
     opaOff: false,
     opaResponse: "",
     dialog: false,
@@ -110,19 +150,7 @@ export default {
     access_token: "",
     editor: null,
     regoFragements: [],
-    client_creds_scopes: "",
-    user: "",
-    clients: [],
-    editedIndex: -1,
-    viewedItem: {
-      client_name: "",
-      client_id: 0,
-      client_secret: 0
-    },
-    defaultItem: {
-      client_name: "",
-      client_id: 0
-    }
+    user: ""
   }),
 
   computed: {
@@ -192,6 +220,37 @@ export default {
       var regoToSend = this.createFormattedString(jsonContent.content);
       console.log(regoToSend);
       var opa = await this.$http.post(baseURI, { rego: regoToSend });
+      console.log(opa)
+    },
+    async easyAuthorization() {
+      var component = this
+      const baseURI = "http://localhost:8000/easyRego";
+      var opa = await this.$http.get(baseURI);
+      this.regoFragements = opa.data.rego.split("\n");
+      var rego = opa.data.rego.split("\n").join("</br>");
+      var niceRego = this.createPrettyString(this.regoFragements);
+      var regoWithSettings = this.easyAuthorizationSettings(niceRego)
+      this.editor.setContent(regoWithSettings)
+      this.saveRego()
+    },
+    easyAuthorizationSettings(rego){
+      var regoSettingsString = ""
+      if(this.checkForClaim){
+         regoSettingsString += '<p>' + 'user_owns_claim' + '</p></br>'
+         rego.replace("#claim#", this.claimToCheck)
+      } 
+      if(this.checkForScope) {
+         regoSettingsString += '<p>' + 'user_owns_scope' + '</p></br>'
+         rego.replace("#scope#", this.scopeToCheck)
+      } 
+      if(this.checkForGroup) {
+          regoSettingsString += '<p>' + 'user_owns_role' + '</p></br>'
+      } 
+      if(this.checkForUser) {
+        regoSettingsString += '<p>' + 'user_owns_username' + '</p></br>'
+      }
+      var newRego = rego.replace("#placeholder#", regoSettingsString).replace("#username#", this.userForCheck).replace("#role#", this.groupForCheck).replace("#scope#", this.scopeToCheck).replace("#claim#", this.claimToCheck)
+      return newRego
     },
     async sendToOpa() {
       var component = this;
