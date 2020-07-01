@@ -47,7 +47,7 @@ const O4Oclient = new okta.Client({
 
 
 app.get("/developer-apps", function (req, res) {
-  oktaJwtVerifier.verifyAccessToken(req.headers.authorization, "api://payments")
+  oktaJwtVerifier.verifyAccessToken(req.headers.authorization, process.env.AUDIENCE)
     .then(jwt => {
       var request = require('request');
       if (O4OToken == "") {
@@ -143,7 +143,7 @@ app.post("/developer-app", function (req, res) {
   // console.log(req.body.headers.Authorization);
 
   //not sure why it's coming in from req.body and not headers...
-  oktaJwtVerifier.verifyAccessToken(req.body.headers.Authorization, "api://payments")
+  oktaJwtVerifier.verifyAccessToken(req.body.headers.Authorization, process.env.AUDIENCE)
     .then(jwt => {
       console.log(req.body.user)
       var clientId = uuidv4()
@@ -195,7 +195,7 @@ app.post("/developer-app", function (req, res) {
 app.get("/scopes", function (req, res) {
   console.log(req.headers)
   console.log(req.headers.authorization)
-  oktaJwtVerifier.verifyAccessToken(req.headers.authorization, "api://payments")
+  oktaJwtVerifier.verifyAccessToken(req.headers.authorization, process.env.AUDIENCE)
     .then(jwt => {
       var options = {
         'method': 'GET',
@@ -216,7 +216,7 @@ app.post("/developer-pkce-app", function (req, res) {
   // console.log(req.body.headers.Authorization);
 
   //not sure why it's coming in from req.body and not headers...
-  oktaJwtVerifier.verifyAccessToken(req.body.headers.Authorization, "api://payments")
+  oktaJwtVerifier.verifyAccessToken(req.body.headers.Authorization, process.env.AUDIENCE)
     .then(jwt => {
       console.log(req.body.user)
       var clientId = uuidv4()
@@ -275,7 +275,7 @@ app.post("/developer-pkce-app", function (req, res) {
 })
 
 app.post("/newSecret", function (req, res) {
-  oktaJwtVerifier.verifyAccessToken(req.headers.authorization, "api://payments")
+  oktaJwtVerifier.verifyAccessToken(req.headers.authorization, process.env.AUDIENCE)
     .then(jwt => {
       console.log(req.body.client.client_id)
       var clientId = req.body.client.client_id
@@ -315,7 +315,7 @@ app.post("/newSecret", function (req, res) {
 
 app.delete("/oauthClient", function (req, res) {
   console.log(req.headers);
-  oktaJwtVerifier.verifyAccessToken(req.headers.authorization, "api://payments")
+  oktaJwtVerifier.verifyAccessToken(req.headers.authorization, process.env.AUDIENCE)
     .then(jwt => {
       console.log(req.body.client.client_id)
       var clientId = req.body.client.client_id

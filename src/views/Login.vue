@@ -32,9 +32,9 @@ export default {
          * needs to be configured with the base URL for your Okta Org. Here
          * we derive it from the given issuer for convenience.
          */
-        baseUrl: sampleConfig.oidc.issuer.split('/oauth2')[0],
-        clientId: sampleConfig.oidc.clientId,
-        redirectUri: sampleConfig.oidc.redirectUri,
+        baseUrl: process.env.VUE_APP_OKTA_ISSUER.split('/oauth2')[0],
+        clientId: process.env.VUE_APP_OKTA_ISSUER.VUE_APP_OKTA_CLIENT_ID,
+        redirectUri: "http://localhost:8080/implicit/callback",
         logo: process.env.VUE_APP_LOGO || require('@/assets/logo.png'),
         i18n: {
           en: {
