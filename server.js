@@ -11,6 +11,12 @@ const oktaJwtVerifier = new OktaJwtVerifier({
   issuer: process.env.VUE_APP_OKTA_ISSUER // required
 });
 
+process.on('SIGINT', function() {
+  console.log("Caught interrupt signal");
+  // kill(8000, 'tcp')
+      process.exit();
+});
+
 
 var bodyParser = require('body-parser')
 var cors = require('cors')
