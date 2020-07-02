@@ -33,7 +33,7 @@ export default {
          * we derive it from the given issuer for convenience.
          */
         baseUrl: process.env.VUE_APP_OKTA_ISSUER.split('/oauth2')[0],
-        clientId: process.env.VUE_APP_OKTA_ISSUER.VUE_APP_OKTA_CLIENT_ID,
+        clientId: process.env.VUE_APP_OKTA_CLIENT_ID,
         redirectUri: "http://localhost:8080/implicit/callback",
         logo: process.env.VUE_APP_LOGO || require('@/assets/logo.png'),
         i18n: {
@@ -43,9 +43,9 @@ export default {
         },
         authParams: {
           pkce: true,
-          issuer: sampleConfig.oidc.issuer,
+          issuer: process.env.VUE_APP_OKTA_ISSUER,
           display: 'page',
-          scopes: sampleConfig.oidc.scopes,
+          scopes: ['openid', 'profile', 'email']
         }
       })
 

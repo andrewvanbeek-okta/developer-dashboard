@@ -137,7 +137,7 @@ export default {
     useCurrentToken: false,
     opaMessageTitle: "",
     checkForClaim: false,
-    claimKey: "",
+    claimKey: "your_claim_key",
     claimToCheck: "",
     checkForScope: false,
     scopeToCheck: "",
