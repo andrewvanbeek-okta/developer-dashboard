@@ -2,7 +2,7 @@
 .env.example
 .env.local
 .env.staging
-
+.config.js
 .public.pem
 .private.pem
 .jwk.json
